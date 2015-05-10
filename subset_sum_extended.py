@@ -4,8 +4,7 @@ call_counter = 0
 def reset_call_count():
     global call_counter
     call_counter = 0
-    print call_counter
-    
+
 def call_count():
     return call_counter
 
@@ -13,15 +12,64 @@ def increment_call_count():
     global call_counter
     call_counter += 1
 
-
-def subset_sum_extended(values,target):
-    '''Return boolean array if the target is the sum of some subset of values
+class SubsetFinder(object):
+    """Find the subset that sums to a target value
     
-    Assume positive values only for now.
-    Algorithm is from http://en.wikipedia.org/wiki/Subset_sum_problem
-    '''
+    The algorithm is from http://en.wikipedia.org/wiki/Subset_sum_problem.
+    """
+    
+    def __init__(self, values, target):
+        """Initialise with list of values and target value for sum of subset
+        """
+        self.values = values
+        self.target = target
+        # dict to memoise return values from function q(i,s)
+        self.q_res = {} 
+        # dict, indexed by (i,s) stores list of bool, showing which elements
+        # are used in sum s
+        self.elements_used = {} 
+        # initial value for elements_used - all False
+        self.no_elements_used = [False for _ in values]
+        self.subset_found = False
+        self.subset_members = None
+        self._find_subset()
+        
+    def subset_exists(self):
+        """Return True is a subset has been found
+        """
+        return self.subset_found
+    
+    def subset_contents(self):
+        """Return a list of bool, True indicates that corresponding element is in the subset
+        """
+        return self.subset_members
 
-    def q(i,s,max_possible,min_possible,values,q_res):
+    def _find_subset(self):
+        if not self.values:
+            return #empty list cannot contain a subset
+        self.max_possible = sum(self.values)
+        self.min_possible = min(self.values)
+        if self.target > self.max_possible or self.target < self.min_possible:
+            return #target less than min or more than max - no possible subset
+
+        self._initial_pass()
+    
+        for i in range(2,len(self.values)+1):
+            if self.q(i,self.target):
+                self.subset_found = True
+                self.subset_members = self.elements_used[(i,self.target)]
+                return # subset found - stop looking
+        return # finished looking - no subset found
+
+    def _initial_pass(self):
+        for s in range(1,self.max_possible+1):
+            first_element_matches = (self.values[0] == s)
+            self.q_res[(1,s)] = first_element_matches
+            self.elements_used[(1,s)] = list(self.no_elements_used)
+            if first_element_matches:
+                self.elements_used[(1,s)][0] = True
+
+    def q(self,i,s):
         '''Return true if there is a non-empty subset of values[0:i-1] that sums to s
 
         Args:
@@ -32,56 +80,37 @@ def subset_sum_extended(values,target):
             q_res: dict to record result of function, indexed by (i,s)
         '''
         increment_call_count()
-        if i == 0 or i > len(values):
+        if i == 0 or i > len(self.values):
             return False
-        if s < min_possible or s > max_possible:
+        if s < self.min_possible or s > self.max_possible:
             return False
-        if not (i,s) in q_res:
+        if not (i,s) in self.q_res:
             #Either the subset before i matches the sum
             #in which case i isn't involved
-            if q(i-1,s,max_possible,min_possible,values,q_res):
-                elements_used[(i,s)] = list(elements_used[(i-1,s)])
-                q_res[(i,s)] = True
-            elif values[i-1] == s:
+            if self.q(i-1,s):
+                self.elements_used[(i,s)] = list(self.elements_used[(i-1,s)])
+                self.q_res[(i,s)] = True
+            elif self.values[i-1] == s:
                 #or the value at i matches the sum
                 #in which case i is used
-                elements_used[(i,s)] = no_elements_used
-                elements_used[(i,s)][i-1] = True
-                q_res[(i,s)] = True
-            elif q(i-1,s-values[i-1],max_possible,min_possible,values,q_res):
+                self.elements_used[(i,s)] = self.no_elements_used
+                self.elements_used[(i,s)][i-1] = True
+                self.q_res[(i,s)] = True
+            elif self.q(i-1,s-self.values[i-1]):
                 #or the subset before i + the value at i matches the sum
                 #in which case i is used
-                elements_used[(i,s)] = elements_used[(i-1,s-values[i-1])]
-                elements_used[(i,s)][i-1] = True
-                q_res[(i,s)] = True
+                self.elements_used[(i,s)] = self.elements_used[(i-1,s-self.values[i-1])]
+                self.elements_used[(i,s)][i-1] = True
+                self.q_res[(i,s)] = True
             else:
-                q_res[(i,s)] = False
-                elements_used[(i,s)] = no_elements_used
-        return q_res[(i,s)]    
-    
-    q_res = {}
-    elements_used = {}
-    no_elements_used = [False for _ in values]
-     
-    if not values:
-        return False, None
-    max_possible = sum(values)
-    min_possible = min(values)
-    if target > max_possible or target < min_possible:
-        return False, None
-    
-    for s in range(1,max_possible+1):
-        first_element_matches = (values[0] == s)
-        q_res[(1,s)] = first_element_matches
-        elements_used[(1,s)] = list(no_elements_used)
-        if first_element_matches:
-            elements_used[(1,s)][0] = True
-#         print q_res[(1,s)]
+                self.q_res[(i,s)] = False
+                self.elements_used[(i,s)] = self.no_elements_used
+        return self.q_res[(i,s)]    
+       
+def subset_sum_extended(values,target):
+    ssf = SubsetFinder(values, target)
+    return ssf.subset_exists(), ssf.subset_contents()
 
-    for i in range(2,len(values)+1):
-        if q(i,target,max_possible,min_possible,values,q_res):
-            return True, elements_used[(i,target)]
-    return False,None
 
 class TestSubsetSumExtended(unittest.TestCase):
     
@@ -96,6 +125,9 @@ class TestSubsetSumExtended(unittest.TestCase):
           
     def test_subset_is_first_value(self):
         self.assertEquals(subset_sum_extended(values=[7,8,9], target=7),(True,[True,False,False]))
+        s = SubsetFinder(values=[7,8,9], target=7)
+        self.assertEqual(s.subset_exists(), True)
+        self.assertEqual(s.subset_contents(), [True,False,False])
 
     def test_subset_is_middle_value(self):
         self.assertEquals(subset_sum_extended(values=[7,8,9], target=8),(True,[False,True,False]))
