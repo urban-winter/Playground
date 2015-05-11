@@ -54,7 +54,7 @@ class SubsetFinder(object):
 
         self._initial_pass()
     
-        for i in range(2,len(self.values)+1):
+        for i in range(1,len(self.values)+1):
             if self.q(i,self.target):
                 self.subset_found = True
                 self.subset_members = self.elements_used[(i,self.target)]
@@ -111,6 +111,10 @@ def subset_sum_extended(values,target):
     ssf = SubsetFinder(values, target)
     return ssf.subset_exists(), ssf.subset_contents()
 
+def subset_sum(values,target):
+    retval, _ = subset_sum_extended(values, target)
+    return retval
+
 
 class TestSubsetSumExtended(unittest.TestCase):
     
@@ -122,6 +126,9 @@ class TestSubsetSumExtended(unittest.TestCase):
            
     def test_sum_smaller_than_min_possible(self):
         self.assertEquals(subset_sum_extended(values=[5,4,3,2], target=1),(False,None))
+        
+    def test_subset_is_only_value(self):
+        self.assertEquals(subset_sum_extended(values=[1], target=1),(True,[True]))
           
     def test_subset_is_first_value(self):
         self.assertEquals(subset_sum_extended(values=[7,8,9], target=7),(True,[True,False,False]))
