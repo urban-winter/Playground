@@ -14,7 +14,7 @@ def many_to_many_match(list1,list2):
         return None
     highest_possible_common_sum = min(sum(list1),sum(list2))
     lowest_possible_common_sum = min(min(list1),min(list2))
-    for try_sum in range(highest_possible_common_sum,lowest_possible_common_sum,-1):
+    for try_sum in range(highest_possible_common_sum,lowest_possible_common_sum-1,-1):
         if subset_sum(list1,try_sum) and subset_sum(list2,try_sum):
             return try_sum
     return None
@@ -37,7 +37,7 @@ class TestManyToMany(unittest.TestCase):
         self.assertEquals(many_to_many_match([11,17],[19,23]),None)
         
     def test_big_lists(self):
-        list1 = [x for x in range(1000,1100)]
-        list2 = [x for x in range(1000,1101)]
+        list1 = [x for x in range(1,100)]
+        list2 = [x for x in range(1,101)]
         self.assertEquals(many_to_many_match(list1,list2),sum(list1))
         
