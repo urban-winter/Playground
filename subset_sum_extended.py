@@ -1,4 +1,5 @@
 import unittest
+from collections import namedtuple
 call_counter = 0
 
 def reset_call_count():
@@ -163,3 +164,53 @@ class TestSubsetSumExtended(unittest.TestCase):
         reset_call_count()
         self.assertEquals(subset_sum_extended(values, target),(True,expected_list))
         print 'Call_count: %s' % call_count()
+
+
+# TODO:
+#  Matching decimals
+
+ReconRecord = namedtuple('ReconRecord','date,description,amount')
+
+def subset_objects(records, target, value_attr_name='amount'):
+    """Return the subset of records that sum to target
+    
+    value_attr_amount defines the name of the attribute which will be 
+    summed.
+    
+    Returns a list of records or None if no subset is found that
+    sums to target.
+    """
+    found_records = []
+    amounts = [getattr(record,value_attr_name) for record in records]
+    found, records_in_sum = subset_sum_extended(amounts, target)
+    if found:
+        found_records = [record if used else None for used, record in zip(records_in_sum,records)]
+        found_records = filter(lambda x: x is not None,found_records)
+    return found_records
+        
+class TestSubsetSumWithObjects(unittest.TestCase):
+ 
+    def test_one_record(self):
+        records = [ReconRecord('1 Jan 15','nothing',10)]
+        self.assertEqual(subset_objects(records,target=10), [ReconRecord('1 Jan 15','nothing',10)])
+        
+    def test_no_records(self):
+        self.assertEqual(subset_objects([],target=10), [])
+
+    def test_one_record_no_match(self):
+        records = [ReconRecord('1 Jan 15','nothing',10)]
+        self.assertEqual(subset_objects(records,target=9), [])
+
+    def test_one_record_with_different_value_attribute(self):
+        class Record(object):
+            value = 11
+        record = Record()
+        self.assertEqual(subset_objects([record],target=11,value_attr_name='value'), 
+                         [record])
+        
+    def test_matches_two_out_of_three(self):
+        class Record(object):
+            def __init__(self,amount):
+                self.amount = amount
+        records = [Record(1),Record(2),Record(4)]
+        self.assertEqual(subset_objects(records,target=3), records[0:2])
