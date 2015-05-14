@@ -116,6 +116,15 @@ def subset_sum(values,target):
     retval, _ = subset_sum_extended(values, target)
     return retval
 
+def subset_sum_fp(values, target):
+    """Find a subset of values that sums to target
+    
+    Values are treated as 2 decimal place fixed-point numbers.
+    """
+    values = [int(value*100+0.001) for value in values]
+    target = int(target*100)
+    return subset_sum_extended(values,target)
+
 
 class TestSubsetSumExtended(unittest.TestCase):
     
@@ -165,10 +174,6 @@ class TestSubsetSumExtended(unittest.TestCase):
         self.assertEquals(subset_sum_extended(values, target),(True,expected_list))
         print 'Call_count: %s' % call_count()
 
-
-# TODO:
-#  Matching decimals
-
 ReconRecord = namedtuple('ReconRecord','date,description,amount')
 
 def subset_objects(records, target, value_attr_name='amount'):
@@ -214,3 +219,47 @@ class TestSubsetSumWithObjects(unittest.TestCase):
                 self.amount = amount
         records = [Record(1),Record(2),Record(4)]
         self.assertEqual(subset_objects(records,target=3), records[0:2])
+
+class TestSubsetSumTwoDigitFixed(unittest.TestCase):
+    def test_empty_set(self):
+        self.assertEquals(subset_sum_fp(values=[], target=10.00),(False,None))
+       
+    def test_sum_larger_than_max_possible(self):
+        self.assertEquals(subset_sum_fp(values=[5.11,4.22], target=10.0),(False,None))
+            
+    def test_sum_smaller_than_min_possible(self):
+        self.assertEquals(subset_sum_fp(values=[5.1,4.1,3.1,2.1], target=1),(False,None))
+         
+    def test_subset_is_only_value(self):
+        self.assertEquals(subset_sum_fp(values=[1.1], target=1.1),(True,[True]))
+
+    def test_subset_is_first_value(self):
+        self.assertEquals(subset_sum_fp(values=[7.11,8.99,9.76], target=7.11),(True,[True,False,False]))
+
+    def test_subset_is_middle_value(self):
+        self.assertEquals(subset_sum_fp(values=[7.11,8.22,9.33], target=8.22),(True,[False,True,False]))
+              
+    def test_subset_is_last_value(self):
+        self.assertEquals(subset_sum_fp(values=[7.11,8.22,9.33], target=9.33),(True,[False,False,True]))
+              
+    def test_other_3_element_combinations(self):
+        self.assertEquals(subset_sum_fp(values=[7.01,8.02,10.03], target=15.03),(True,[True,True,False]))
+        self.assertEquals(subset_sum_fp(values=[7.01,8.02,10.03], target=17.04),(True,[True,False,True]))
+        self.assertEquals(subset_sum_fp(values=[7.01,8.02,10.03], target=18.05),(True,[False,True,True]))
+        self.assertEquals(subset_sum_fp(values=[7.01,8.02,10.03], target=25.06),(True,[True,True,True]))
+       
+    def test_impossible_total(self):
+        reset_call_count()
+        self.assertEquals(subset_sum_fp(values=[7.01,8.02,10.03], target=24.01),(False,None))
+        print 'Call_count: %s' % call_count()
+          
+    def test_multiple_possibilities(self):
+        self.assertEquals(subset_sum_fp(values=[7.11,7.11,7.11], target=14.22),(True,[True,True,False]))
+          
+    def test_big_one(self):
+        values = [10.11 for _ in range(1,200)]
+        expected_list = [True for _ in values]
+        target = sum([int(value*100+0.001) for value in values])/100.0
+        reset_call_count()
+        self.assertEquals(subset_sum_fp(values, target),(True,expected_list))
+        print 'Call_count: %s' % call_count()
