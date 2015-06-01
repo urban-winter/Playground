@@ -1,26 +1,32 @@
 import unittest
 
+def pop_least(list1,list2):
+    """return the smaller element from two ordered lists, and remove it
+    
+    If an element is the same in both lists then it is returned and removed
+    from both list which effectively deduplicates when called successively
+    to merge two ordered lists.
+    """
+    if list1[0] < list2[0]:
+        return list1.pop(0)
+    if list2[0] < list1[0]:
+        return list2.pop(0)
+    list1.pop(0)
+    return list2.pop(0)
+
 def merge_sorted_lists(sorted_list, additional_terms_sorted):
     """merge two ascending lists"""
-    i_ats = 0
-    i_sl = 0
     retlist = []
     finished = False
     while not finished:
-        if i_ats == len(additional_terms_sorted):
-            retlist.extend(sorted_list[i_sl:])
+        if not sorted_list:
+            retlist.extend(additional_terms_sorted)
             finished = True
-        elif i_sl == len(sorted_list):
-            retlist.extend(additional_terms_sorted[i_ats:])
+        elif not additional_terms_sorted:
+            retlist.extend(sorted_list)
             finished = True
-        elif sorted_list[i_sl] <= additional_terms_sorted[i_ats]:
-            retlist.append(sorted_list[i_sl])
-            i_sl += 1
-        elif additional_terms_sorted[i_ats] < sorted_list[i_sl]:
-            retlist.append(additional_terms_sorted[i_ats])
-            i_ats += 1
         else:
-            assert False #Can't happen
+            retlist.append(pop_least(sorted_list,additional_terms_sorted))
     return retlist
 
 
