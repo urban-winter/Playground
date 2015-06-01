@@ -32,6 +32,7 @@ def merge_sorted_lists(sorted_list, additional_terms_sorted):
 
 def add_term_to_sorted_list(sorted_list, term):
     """
+    From Wikipedia:
     However, given a sorted list of sums for k elements, the list can be expanded to two 
     sorted lists with the introduction of a (k + 1)st element, and these two sorted lists 
     can be merged in time O(2k)
@@ -58,4 +59,30 @@ class TestAddTermToSortedList(unittest.TestCase):
     def test_duplicates_are_removed(self):
         result = add_term_to_sorted_list([1],1)
         self.assertEqual(result, [1,2])
+
+def sums_for_all_combinations(values):
+    """returns sorted list of all combination sums with dups removed"""
+    sums = []
+    for value in values:
+        sums = add_term_to_sorted_list(sums, value)
+    return sums        
+        
+def subset_sum_exponential_time(values, target):
+    # TODO: obvious checks - more than 1 value, target not greater than max
+    
+    #split values list in half
+    midpoint = len(values)/2
+    values1 = values[0:midpoint]
+    values2 = values[midpoint:]
+    #generate all combination sums for each list, sorted
+    sums1 = sums_for_all_combinations(values1)
+    sums2 = sums_for_all_combinations(values2)
+    #iterate through both results, one up, one down and check for target
+    for sum1 in sums1:
+        for sum2 in sums2.reverse():
+            if sum1 + sum2 == target:
+                return True
+            if sum1 + sum2 > target:
+                break
+    return False
         
