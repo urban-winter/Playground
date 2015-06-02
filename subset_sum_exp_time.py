@@ -68,8 +68,8 @@ def sums_for_all_combinations(values):
     return sums        
         
 def subset_sum_exponential_time(values, target):
-    # TODO: obvious checks - more than 1 value, target not greater than max
-    
+    if len(values) == 1:
+        return values[0] == target
     #split values list in half
     midpoint = len(values)/2
     values1 = values[0:midpoint]
@@ -77,12 +77,58 @@ def subset_sum_exponential_time(values, target):
     #generate all combination sums for each list, sorted
     sums1 = sums_for_all_combinations(values1)
     sums2 = sums_for_all_combinations(values2)
+    if target in sums2:
+        return True
     #iterate through both results, one up, one down and check for target
-    for sum1 in sums1:
-        for sum2 in sums2.reverse():
-            if sum1 + sum2 == target:
+    for sum1 in reversed(sums1):
+        for sum2 in sums2:
+            if sum1 == target or sum1 + sum2 == target:
                 return True
             if sum1 + sum2 > target:
                 break
     return False
+
+class TestSubsetSumExtended(unittest.TestCase):
+    
+    def test_empty_set(self):
+        self.assertFalse(subset_sum_exponential_time(values=[], target=10))
+       
+    def test_sum_larger_than_max_possible(self):
+        self.assertFalse(subset_sum_exponential_time(values=[5,4], target=10))
+            
+    def test_sum_smaller_than_min_possible(self):
+        self.assertFalse(subset_sum_exponential_time(values=[5,4,3,2], target=1))
+         
+    def test_subset_is_only_value(self):
+        self.assertTrue(subset_sum_exponential_time(values=[1], target=1))
+           
+    def test_subset_is_first_value(self):
+        self.assertTrue(subset_sum_exponential_time(values=[7,8,9], target=7))
+ 
+    def test_subset_is_middle_value(self):
+        self.assertTrue(subset_sum_exponential_time(values=[7,8,9], target=8))
+              
+    def test_subset_is_last_value(self):
+        self.assertTrue(subset_sum_exponential_time(values=[7,8,9], target=9))
+              
+    def test_other_3_element_combinations(self):
+        self.assertTrue(subset_sum_exponential_time(values=[7,8,10], target=15))
+        self.assertTrue(subset_sum_exponential_time(values=[7,8,10], target=17))
+        self.assertTrue(subset_sum_exponential_time(values=[7,8,10], target=18))
+        self.assertTrue(subset_sum_exponential_time(values=[7,8,10], target=25))
+       
+    def test_impossible_total(self):
+        self.assertFalse(subset_sum_exponential_time(values=[7,8,10], target=24))
+          
+    def test_multiple_possibilities(self):
+        self.assertTrue(subset_sum_exponential_time(values=[7,7,7], target=14))
+          
+    def test_big_one(self):
+        values = [10 for _ in range(200)]
+        target = sum(values)
+        self.assertTrue(subset_sum_exponential_time(values, target))
+        
+# TODO: Random subset tester
+# Generate set of random numbers then generate subset sum from random subset
+
         
