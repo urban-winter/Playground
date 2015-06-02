@@ -1,4 +1,5 @@
 import unittest
+import random
 
 def pop_least(list1,list2):
     """return the smaller element from two ordered lists, and remove it
@@ -128,7 +129,32 @@ class TestSubsetSumExtended(unittest.TestCase):
         target = sum(values)
         self.assertTrue(subset_sum_exponential_time(values, target))
         
-# TODO: Random subset tester
-# Generate set of random numbers then generate subset sum from random subset
+def random_set(size, upper_bound, seed=None):
+#     random.seed(seed)
+    return [random.randint(1,upper_bound) for _ in range(size)]
+
+def random_subset_sum(size, upper_bound, sum_terms, seed=None):
+    """Return a set of random ints and a sum of a random subset
+    
+    Args:
+        size - size of resulting set
+        upper_bound - set contains ints between 1 and upper_bound
+        sum_terms - number of terms in the sum
+    """
+    random.seed(seed)
+    rset = random_set(size, upper_bound)
+    subset_sum = sum(random.sample(rset,sum_terms))
+    return (rset, subset_sum)
+
+def load_test():
+    for i in range(1,10):
+        values, target = random_subset_sum(40, 10000, i % 10)
+        print 'Target: ', target
+        print subset_sum_exponential_time(values, target)
+        
+        
+if __name__ == '__main__':
+    load_test()
+        
 
         
