@@ -1,5 +1,6 @@
 import unittest
 import random
+import time
 
 def pop_least(list1,list2):
     """return the smaller element from two ordered lists, and remove it
@@ -146,15 +147,41 @@ def random_subset_sum(size, upper_bound, sum_terms, seed=None):
     subset_sum = sum(random.sample(rset,sum_terms))
     return (rset, subset_sum)
 
-def load_test():
-    for i in range(1,10):
-        values, target = random_subset_sum(40, 10000, i % 10)
-        print 'Target: ', target
-        print subset_sum_exponential_time(values, target)
+class Stats(object):
+    def __init__(self):
+        self.maximum = 0
+        self.minimum = float('inf')
+        self.sample_count = 0
+        self.average = 0
+    def add_sample(self, sample):
+        if sample > self.maximum:
+            self.maximum = sample
+        if sample < self.minimum:
+            self.minimum = sample
+        if self.average == 0:
+            self.average = sample
+        else:
+            self.average = (self.average * self.sample_count + sample) / (self.sample_count + 1)
+        self.sample_count += 1
+    def __str__(self):
+        return 'Max: %s, Min: %s, Avg: %s, Samples: %s' % (self.maximum, self.minimum, self.average, self.sample_count)
+                    
+def performance_sample(size, upper_bound, sum_terms, samples = 5):
+    stats = Stats()
+    for _ in range(samples):
+        values, target = random_subset_sum(size, upper_bound, sum_terms)
+        start_time = time.time()
+        res = subset_sum_exponential_time(values, target)
+        end_time = time.time()
+        assert res
+        stats.add_sample(end_time - start_time)
+    return stats
         
-        
+
 if __name__ == '__main__':
-    load_test()
+    for set_size in range(10,50):
+        stats = performance_sample(set_size, 1000, set_size, 50)
+        print '%s,%s,%s,%s,%s' % (set_size, stats.minimum, stats.maximum, stats.average, stats.sample_count)
         
 
         
