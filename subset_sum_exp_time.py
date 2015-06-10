@@ -4,7 +4,7 @@ import time
 
 class CombinationSum():
     """A subset sum
-    
+     
     The sum is formed by combining members of a set.
     self.value is the value of the sum
     self.elements is a list of boolean indicating which elements of the set
@@ -20,6 +20,42 @@ class CombinationSum():
             return False
     def __ne__(self, other):
         return not self.__eq__(other)
+
+# class CombinationSum():
+#     """A subset sum
+#     
+#     The sum is formed by combining members of a set.
+#     self.value is the value of the sum
+#     self.elements is a list of boolean indicating which elements of the set
+#         were included in the sum
+#     """
+#     def __init__(self,values):
+#         self.values = values
+#         self.value = 0
+#         self.elements = [False for _ in values]
+#         self.current = 0
+#     def add_next(self):
+#         assert not self.finished()
+#         self.value += self.values[self.current]
+#         self.elements[self.current] = True
+#         self.current += 1
+#     def skip_next(self):
+#         assert not self.finished()
+#         self.current += 1
+#     def use_next(self):
+#         assert not self.finished()
+#         self.elements = [False for _ in self.values]
+#         self.value = self.values[self.current]
+#         self.current += 1       
+#     def finished(self):
+#         return self.current == len(self.values)
+#     def __eq__(self, other):
+#         if isinstance(other, self.__class__):
+#             return self.__dict__ == other.__dict__
+#         else:
+#             return False
+#     def __ne__(self, other):
+#         return not self.__eq__(other)
 
 def pop_least(list1,list2):
     """return the smaller element from two ordered lists, and remove it
@@ -59,53 +95,48 @@ def add_term_to_sorted_list(sorted_list, term):
     sorted lists with the introduction of a (k + 1)st element, and these two sorted lists 
     can be merged in time O(2k)
     """
-    no_elements_used = [False for _ in range(len(sorted_list[0].elements))] if sorted_list else []
-    elements_used = no_elements_used
-    elements_used.append(True)   
-    additional_terms_sorted = [CombinationSum(term, elements_used)]
+    additional_terms_sorted = [CombinationSum(term, [term])] #TODO: remove this special case
     if not sorted_list:
         return additional_terms_sorted
-#     additional_terms_sorted.extend([CombinationSum(x.value + term) for x in sorted_list])
     for a_sum in sorted_list:
         elements_used = list(a_sum.elements)
-        elements_used.append(True)
+        elements_used.append(term)
         additional_terms_sorted.append(CombinationSum(a_sum.value + term, elements_used))
-        a_sum.elements.append(False)
     return merge_sorted_lists(sorted_list, additional_terms_sorted)
 
 class TestAddTermToSortedList(unittest.TestCase):
 
     def test_length_zero(self):
         result = add_term_to_sorted_list([],1)
-        self.assertEqual(result, [CombinationSum(1,[True,])])
+        self.assertEqual(result, [CombinationSum(1,[1])])
 
     def test_length_one(self):
-        start = [CombinationSum(3,[True])]
+        start = [CombinationSum(3,[3])]
         result = add_term_to_sorted_list(start,4)
-        expected = [CombinationSum(3,[True,False]),
-                    CombinationSum(4,[False,True]),
-                    CombinationSum(7,[True,True])]
+        expected = [CombinationSum(3,[3]),
+                    CombinationSum(4,[4]),
+                    CombinationSum(7,[3,4])]
         self.assertEqual(result, expected)
-        
+         
     def test_length_two(self):
-        start = [CombinationSum(3,[True,False]),
-                 CombinationSum(4,[False,True]),
-                 CombinationSum(7,[True,True])]
+        start = [CombinationSum(3,[3]),
+                 CombinationSum(4,[4]),
+                 CombinationSum(7,[3,4])]
         result = add_term_to_sorted_list(start,5)
-        expected = [CombinationSum(3,[True,False,False]),
-                    CombinationSum(4,[False,True,False]),
-                    CombinationSum(5,[False,False,True]),
-                    CombinationSum(7,[True,True,False]),
-                    CombinationSum(8,[True,False,True]),
-                    CombinationSum(9,[False,True,True]),
-                    CombinationSum(12,[True,True,True])]
+        expected = [CombinationSum(3,[3]),
+                    CombinationSum(4,[4]),
+                    CombinationSum(5,[5]),
+                    CombinationSum(7,[3,4]),
+                    CombinationSum(8,[3,5]),
+                    CombinationSum(9,[4,5]),
+                    CombinationSum(12,[3,4,5])]
         self.assertEqual(result, expected)
-
+ 
     def test_duplicates_are_removed(self):
-        start = [CombinationSum(1,[True])]
+        start = [CombinationSum(1,[1])]
         result = add_term_to_sorted_list(start,1)
-        expected = [CombinationSum(1,[False,True]),
-                    CombinationSum(2,[True,True])]
+        expected = [CombinationSum(1,[1]),
+                    CombinationSum(2,[1,1])]
         self.assertEqual(result, expected)
 
 def sums_for_all_combinations(values):
@@ -115,14 +146,10 @@ def sums_for_all_combinations(values):
         sums = add_term_to_sorted_list(sums, value)
     return sums        
         
-def merge_elements_used(elements1, elements2):
-    assert len(elements1) == len(elements2)
-    return [x or y for x,y in zip(elements1, elements2)]
-
 def subset_sum_exponential_time(values, target):
     if len(values) == 1:
         if values[0] == target:
-            return True,[]
+            return True,[target]
         else:
             return False, None
     #split values list in half
@@ -141,60 +168,51 @@ def subset_sum_exponential_time(values, target):
             if sum1.value == target:
                 return True, sum1.elements
             if sum1.value + sum2.value == target:
-                return True, merge_elements_used(sum1.elements, sum2.elements)
+                sum1.elements.extend(sum2.elements)
+                return True, sum1.elements
             if sum1.value + sum2.value > target:
                 break
     return False, None
 
-# class TestSubsetSumExtended(unittest.TestCase):
-#      
-#     def test_empty_set(self):
-#         self.assertEquals(subset_sum_exponential_time(values=[], target=10),(False,None))
-#        
-#     def test_sum_larger_than_max_possible(self):
-#         self.assertEquals(subset_sum_exponential_time(values=[5,4], target=10),(False,None))
-#            
-#     def test_sum_smaller_than_min_possible(self):
-#         self.assertEquals(subset_sum_exponential_time(values=[5,4,3,2], target=1),(False,None))
-#         
-#     def test_subset_is_only_value(self):
-# #         self.assertEquals(subset_sum_exponential_time(values=[1], target=1),(True,[True]))
-#         self.assertEquals(subset_sum_exponential_time(values=[1], target=1),(True,[]))
-#            
-#     def test_subset_is_first_value(self):
-# #         self.assertEquals(subset_sum_exponential_time(values=[7,8,9], target=7),(True,[True,False,False]))
-#         self.assertEquals(subset_sum_exponential_time(values=[7,8,9], target=7),(True,[]))
-#  
-#     def test_subset_is_middle_value(self):
-# #         self.assertEquals(subset_sum_exponential_time(values=[7,8,9], target=8),(True,[False,True,False]))
-#         self.assertEquals(subset_sum_exponential_time(values=[7,8,9], target=8),(True,[]))
-#               
-#     def test_subset_is_last_value(self):
-# #         self.assertEquals(subset_sum_exponential_time(values=[7,8,9], target=9),(True,[False,False,True]))
-#         self.assertEquals(subset_sum_exponential_time(values=[7,8,9], target=9),(True,[]))
-#               
-#     def test_other_3_element_combinations(self):
-# #         self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=15),(True,[True,True,False]))
-# #         self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=17),(True,[True,False,True]))
-# #         self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=18),(True,[False,True,True]))
-# #         self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=25),(True,[True,True,True]))
-#         self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=15),(True,[]))
-#         self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=17),(True,[]))
-#         self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=18),(True,[]))
-#         self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=25),(True,[]))
-#        
-#     def test_impossible_total(self):
-#         self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=24),(False,None))
-#           
-#     def test_multiple_possibilities(self):
-# #         self.assertEquals(subset_sum_exponential_time(values=[7,7,7], target=14),(True,[True,True,False]))
-#         self.assertEquals(subset_sum_exponential_time(values=[7,7,7], target=14),(True,[]))
-#           
-# #     def test_big_one(self):
-# #         values = [10 for _ in range(1,200)]
-# #         expected_list = [True for _ in values]
-# #         target = sum(values)
-# #         self.assertEquals(subset_sum_exponential_time(values, target),(True,expected_list))
+class TestSubsetSumExtended(unittest.TestCase):
+       
+    def test_empty_set(self):
+        self.assertEquals(subset_sum_exponential_time(values=[], target=10),(False,None))
+         
+    def test_sum_larger_than_max_possible(self):
+        self.assertEquals(subset_sum_exponential_time(values=[5,4], target=10),(False,None))
+             
+    def test_sum_smaller_than_min_possible(self):
+        self.assertEquals(subset_sum_exponential_time(values=[5,4,3,2], target=1),(False,None))
+          
+    def test_subset_is_only_value(self):
+        self.assertEquals(subset_sum_exponential_time(values=[2], target=2),(True,[2]))
+             
+    def test_subset_is_first_value(self):
+        self.assertEquals(subset_sum_exponential_time(values=[7,8,9], target=7),(True,[7]))
+   
+    def test_subset_is_middle_value(self):
+        self.assertEquals(subset_sum_exponential_time(values=[7,8,9], target=8),(True,[8]))
+               
+    def test_subset_is_last_value(self):
+        self.assertEquals(subset_sum_exponential_time(values=[7,8,9], target=9),(True,[9]))
+               
+    def test_other_3_element_combinations(self):
+        self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=15),(True,[7,8]))
+        self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=17),(True,[7,10]))
+        self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=18),(True,[8,10]))
+        self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=25),(True,[7,8,10]))
+        
+    def test_impossible_total(self):
+        self.assertEquals(subset_sum_exponential_time(values=[7,8,10], target=24),(False,None))
+           
+    def test_multiple_possibilities(self):
+        self.assertEquals(subset_sum_exponential_time(values=[7,7,7], target=14),(True,[7,7]))
+           
+    def test_big_one(self):
+        values = [10 for _ in range(1,200)]
+        target = sum(values)
+        self.assertEquals(subset_sum_exponential_time(values, target),(True,values))
         
 def random_set(size, upper_bound, seed=None):
 #     random.seed(seed)
@@ -249,7 +267,7 @@ if __name__ == '__main__':
         stats = performance_sample(set_size, 1000, set_size, 50)
         print '%s,%s,%s,%s,%s' % (set_size, stats.minimum, stats.maximum, stats.average, stats.sample_count)
         
-# add tracking of which elements are included in each sum
+# add tracking of which elements are included in each sum - done
 # refactor so that both algos derive from same class
 # compare algos
 # wire in to credit card recon
