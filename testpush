@@ -1,0 +1,30 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 8269-551D
+
+ Directory of C:\Dev\SVN Working Directories\homeplay\Playground
+
+25/06/2015  08:55    <DIR>          .
+25/06/2015  08:55    <DIR>          ..
+25/06/2015  08:55                 6 .gitignore
+25/06/2015  08:55               364 .project
+25/06/2015  08:55               423 .pydevproject
+25/06/2015  08:55               791 brackets.py
+25/06/2015  08:55             1,259 chunker.py
+25/06/2015  08:55               398 fizzbuzzwoof.py
+25/06/2015  08:55             1,227 google_evens.py
+25/06/2015  08:55             1,832 graph_search.py
+25/06/2015  08:55             1,632 many_to_many.py
+25/06/2015  08:55             1,208 mergetest.py
+25/06/2015  08:55               169 oli_stamps.py
+25/06/2015  08:55               310 oxo.py
+25/06/2015  08:55             1,308 sqrroot.py
+25/06/2015  08:55             2,671 stacks.py
+25/06/2015  08:55             3,058 stacks2.py
+25/06/2015  08:55               854 stamps.py
+25/06/2015  08:55             4,267 subset_sum.py
+25/06/2015  08:55             9,877 subset_sum_exp_time.py
+25/06/2015  08:55            10,990 subset_sum_extended.py
+25/06/2015  08:55                 0 testpush
+25/06/2015  08:55             1,244 workers.py
+              21 File(s)         43,888 bytes
+               2 Dir(s)  32,758,337,536 bytes free
